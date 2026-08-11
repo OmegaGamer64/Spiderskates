@@ -10,12 +10,17 @@ public class WebLogic : MonoBehaviour
     LineRenderer web;
     Vector2 webTarget;
     Vector2 webEndPoint;
+    
     int count = 0;
+    int segments = 20;
 
     public GameObject webPrefab;
     [Space]
     public float webDelay = 0.025f;
     public float webSpeed = 0.025f;
+    public float maxWebLength = 10f;
+    public int minSegments = 3;
+    public int maxSegments = 20;
 
     private bool isShooting = false;
     void Start()
@@ -28,6 +33,13 @@ public class WebLogic : MonoBehaviour
         if (playerController.clickInput&&!isShooting)
         {
             webTarget = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+
+            segments = (int)(maxSegments * Mathf.Min(1, Vector2.Distance(player.position, webTarget) / maxWebLength)); ;
+            if (segments <= minSegments)
+            {
+                return;
+            }
+
             isShooting = true;
 
             #region WebSettings
@@ -56,23 +68,38 @@ public class WebLogic : MonoBehaviour
         if (isShooting)
         {
             web.SetPosition(0, player.position);
+
         }
     }
 
     void SpawnNextWebSegment()
     {
         count++;
-        if (count < 20 && isShooting) 
+
+        if (count <= segments && isShooting) 
         {
-            float x = player.position.x + ((webTarget.x - player.position.x) / (20 - count));
-            float y = player.position.y + (webTarget.y - player.position.y) / (20 - count);
+            Vector2 lineWeWant = webTarget - (Vector2)player.position;
+            float x = player.position.x + (lineWeWant.x / segments * count);
+            float y = player.position.y + (lineWeWant.y / segments * count);
             webEndPoint = new Vector2(x, y);
+
+            float webLength = Vector2.Distance(player.position, webEndPoint);
+            
+
+            if (webLength > maxWebLength)
+            {
+                Debug.Log("Max web length reached");
+                webEndPoint = Vector2.MoveTowards(webEndPoint, player.position,
+                    Mathf.Abs(webLength - maxWebLength));
+                count = segments;
+            }
 
             web.SetPosition(1, webEndPoint);
             Invoke("SpawnNextWebSegment", webSpeed);
         }
         else
         {
+            count = 0;
             return;
         }
     }
