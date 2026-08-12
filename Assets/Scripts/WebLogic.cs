@@ -10,19 +10,21 @@ public class WebLogic : MonoBehaviour
     LineRenderer web;
     Vector2 webTarget;
     Vector2 webEndPoint;
+    GameObject webEndCollider;
     
     int count = 0;
     int segments = 20;
 
     public GameObject webPrefab;
     [Space]
-    public float webDelay = 0.025f;
     public float webSpeed = 0.025f;
     public float maxWebLength = 10f;
     public int minSegments = 3;
     public int maxSegments = 20;
+    public float playerSpeedTowardsWeb = 30f;
 
     private bool isShooting = false;
+    private bool hasShot = false;
     void Start()
     {
         playerController = FindAnyObjectByType<PlayerController>();
@@ -30,7 +32,7 @@ public class WebLogic : MonoBehaviour
     }
     void FixedUpdate()
     {
-        if (playerController.clickInput&&!isShooting)
+        if (playerController.clickInput&&!isShooting&&!hasShot)
         {
             webTarget = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
 
@@ -56,19 +58,27 @@ public class WebLogic : MonoBehaviour
             web.SetPosition(1, player.position);
 
             count = 0;
-            Invoke("SpawnNextWebSegment", webDelay);
+            SpawnNextWebSegment();
             
         }
+
         if (!playerController.clickInput)
         {
             isShooting = false;
+            hasShot = false;
             Destroy(web);
             count = 0;
         }
+
         if (isShooting)
         {
             web.SetPosition(0, player.position);
 
+        }
+
+        if (hasShot)
+        {
+            web.SetPosition(0, player.position);
         }
     }
 
@@ -94,12 +104,25 @@ public class WebLogic : MonoBehaviour
                 count = segments;
             }
 
+            
+            RaycastHit2D hit = Physics2D.Raycast(webEndPoint, webEndPoint);
+
+            if (hit&& !hit.collider.CompareTag("Player"))
+            {
+                isShooting = false;
+                hasShot = true;
+                web.SetPosition(1, hit.transform.position);
+                Vector2 direction = ( web.GetPosition(1)-player.position).normalized;
+                playerController.rb.AddForce(direction*playerSpeedTowardsWeb);
+                return;
+            }
             web.SetPosition(1, webEndPoint);
             Invoke("SpawnNextWebSegment", webSpeed);
         }
         else
         {
             count = 0;
+            Destroy(webEndCollider);
             return;
         }
     }

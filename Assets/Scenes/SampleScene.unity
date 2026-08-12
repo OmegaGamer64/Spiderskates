@@ -149,9 +149,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WebLogic
   webPrefab: {fileID: 2858961289182930793, guid: 740be86c9984ba6468e0bdc06116a19d, type: 3}
-  webDelay: 0
   webSpeed: 0.0125
   maxWebLength: 10
+  minSegments: 3
   maxSegments: 50
 --- !u!4 &131241052
 Transform:
@@ -442,7 +442,7 @@ GameObject:
   - component: {fileID: 987876408}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
