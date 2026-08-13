@@ -148,11 +148,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a4b7211529cbb34ca80f0c030a12ee6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WebLogic
-  webPrefab: {fileID: 2858961289182930793, guid: 740be86c9984ba6468e0bdc06116a19d, type: 3}
+  webEndPrefab: {fileID: 0}
   webSpeed: 0.0125
-  maxWebLength: 10
+  maxWebLength: 15
+  webGravity: 1
   minSegments: 3
   maxSegments: 50
+  playerSpeedTowardsWeb: 2
 --- !u!4 &131241052
 Transform:
   m_ObjectHideFlags: 0
