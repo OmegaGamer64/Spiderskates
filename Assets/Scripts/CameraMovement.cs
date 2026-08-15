@@ -19,7 +19,7 @@ public class CameraMovement : MonoBehaviour
         player = FindAnyObjectByType<PlayerController>().transform;
         web = FindAnyObjectByType<WebLogic>().transform;
     }
-    void Update()
+    void LateUpdate()
     {
         if (web.GetComponent<WebLogic>().webState == WebLogic.WEB_STATE.SHOOTING ||
             web.GetComponent<WebLogic>().webState == WebLogic.WEB_STATE.SHOT)

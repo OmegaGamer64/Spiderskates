@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 54843617}
   m_Layer: 0
   m_Name: Ground (1)
-  m_TagString: Ground
+  m_TagString: Wall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -287,7 +287,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a4b7211529cbb34ca80f0c030a12ee6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WebLogic
+  playerController: {fileID: 0}
   webEnd: {fileID: 0}
+  webSpring: {fileID: 0}
   webState: 0
   webEndPrefab: {fileID: 0}
   webSpeed: 400
@@ -722,7 +724,7 @@ GameObject:
   - component: {fileID: 852627115}
   m_Layer: 0
   m_Name: Ground (3)
-  m_TagString: Ground
+  m_TagString: Wall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1030,7 +1032,7 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
@@ -1172,6 +1174,7 @@ MonoBehaviour:
   moveVelocity: 100
   jumpVelocity: 200
   fallVelocity: 650
+  maxSpeed: 15
 --- !u!1 &1225127628
 GameObject:
   m_ObjectHideFlags: 0
@@ -1602,7 +1605,7 @@ GameObject:
   - component: {fileID: 1683107802}
   m_Layer: 0
   m_Name: Ground (2)
-  m_TagString: Ground
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1915,7 +1918,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0

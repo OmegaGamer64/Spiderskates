@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+
     public Rigidbody2D rb;
 
     private bool moveLeftInput;
@@ -10,13 +11,21 @@ public class PlayerController : MonoBehaviour
     private bool jumpInput;
     public bool clickInput;
 
+    private WebLogic webLogic;
     private bool isTouchingGround = false;
+    private bool isTouchingWall = false;
+    private bool jumping = false;
 
     public float moveVelocity = 35;
     public float jumpVelocity = 200;
     public float fallVelocity = 650;
+    public float maxSpeed = 15;
 
-    // Update is called once per frame
+    void Start()
+    {
+        webLogic = FindAnyObjectByType<WebLogic>();
+    }
+
     void Update()
     {
         #region PlayerInputs
@@ -62,22 +71,40 @@ public class PlayerController : MonoBehaviour
         }
         #endregion
 
+        if(webLogic.webState == WebLogic.WEB_STATE.SHOT)
+        {
+            jumping = false;
+        }
+
     }
 
     private void FixedUpdate()
     {
         if (moveLeftInput)
         {
-            rb.AddForceX(-moveVelocity * Time.deltaTime, 0);
+            if (rb.linearVelocityX > -maxSpeed)
+            {
+                rb.AddForceX(-moveVelocity * Time.deltaTime, 0);
+            }
+            
         }
         if (moveRightInput)
         {
-            rb.AddForceX(moveVelocity * Time.deltaTime, 0);
+            if (rb.linearVelocityX < maxSpeed)
+            {
+                rb.AddForceX(moveVelocity * Time.deltaTime, 0);
+            }
         }
         if (jumpInput&&isTouchingGround)
         {
             rb.AddForceY(jumpVelocity * Time.deltaTime, ForceMode2D.Impulse);
+            jumping = true;
             isTouchingGround = false;
+        }
+        else if (jumpInput && isTouchingWall)
+        {
+            rb.AddForceY(jumpVelocity * Time.deltaTime, ForceMode2D.Impulse);
+            isTouchingWall = false;
         }
         if (rb.linearVelocityY < 0 && !isTouchingGround)
         {
@@ -93,6 +120,11 @@ public class PlayerController : MonoBehaviour
         if (collision.collider.CompareTag("Ground"))
         {
             isTouchingGround = true;
+            jumping = false;
+        }
+        if (collision.collider.CompareTag("Wall"))
+        {
+            isTouchingWall = true;
         }
         
     }
@@ -102,6 +134,11 @@ public class PlayerController : MonoBehaviour
         if (collision.collider.CompareTag("Ground"))
         {
             isTouchingGround = true;
+            jumping = false;
+        }
+        if (collision.collider.CompareTag("Wall"))
+        {
+            isTouchingWall = true;
         }
 
     }
@@ -113,17 +150,29 @@ public class PlayerController : MonoBehaviour
         {
             Invoke("CoyoteTime", 0.1f);
         }
+        if (collision.collider.CompareTag("Wall"))
+        {
+            isTouchingWall = false;
+        }
 
     }
     #endregion
     private void CoyoteTime()
     {
         isTouchingGround = false;
+        if (jumpInput)
+        {
+            jumping = true;
+        }
+        else
+        {
+            jumping = false;
+        }
     }
     
     private void SlowYVelocity()
     {
-        if (isTouchingGround)
+        if (!isTouchingGround&&jumping)
         {
             rb.linearVelocityY = 0;
         }
