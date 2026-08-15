@@ -1,35 +1,41 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+
 public class WebLogic : MonoBehaviour
 {
+    public enum WEB_STATE { IDLE, INPUT, SHOOTING, SHOT };
+   
     Transform player;
     PlayerController playerController;
     
     LineRenderer web;
     Vector2 webTarget;
-    Vector2 webEndPoint;
-    GameObject webEndCollider;
+    Vector2 direction;
+    GameObject webEnd;
     SpringJoint2D webSpring;
     float webSpringDistanceOriginal;
+    Rigidbody2D webEndRB;
 
 
     int count = 0;
     int segments = 20;
 
+    public WEB_STATE webState;
     public GameObject webEndPrefab;
     [Space]
-    public float webSpeed = 0.025f;
+    public float webSpeed = 10f;
     public float maxWebLength = 10f;
-    public float webGravity = 9.8f;
-    public int minSegments = 3;
-    public int maxSegments = 20;
+    //public float webGravity = 9.8f;
+    //public int minSegments = 3;
+    //public int maxSegments = 20;
     public float playerSpeedTowardsWeb = 30f;
 
-    private bool isShooting = false;
-    private bool hasShot = false;
+    //private bool isShooting = false;
+    //private bool hasShot = false;
     void Start()
     {
+        webState = WEB_STATE.IDLE;
         playerController = FindAnyObjectByType<PlayerController>();
         player = playerController.GetComponentInParent<Transform>();
         webEndPrefab = Resources.Load<GameObject>("Prefabs/WebEnd");
@@ -37,17 +43,12 @@ public class WebLogic : MonoBehaviour
     void FixedUpdate()
     {
         
-        if (playerController.clickInput&&!isShooting&&!hasShot)
+        if (playerController.clickInput&&webState==WEB_STATE.IDLE)
         {
+            webState = WEB_STATE.INPUT;
+
             webTarget = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
 
-            segments = (int)(maxSegments * Mathf.Min(1, Vector2.Distance(player.position, webTarget) / maxWebLength)); ;
-            if (segments <= minSegments)
-            {
-                return;
-            }
-
-            isShooting = true;
 
             #region WebSettings
             web = gameObject.AddComponent<LineRenderer>();
@@ -59,36 +60,27 @@ public class WebLogic : MonoBehaviour
             web.positionCount = 2;
             #endregion
 
-            web.SetPosition(0, player.position);
-            web.SetPosition(1, player.position);
-
-            count = 0;
             SpawnNextWebSegment();
             
         }
 
         if (!playerController.clickInput)
         {
-            isShooting = false;
-            hasShot = false;
+            webState = WEB_STATE.IDLE;
             Destroy(web);
-            Destroy(webEndCollider);
+            Destroy(webEnd);
             count = 0;
         }
 
-        if (isShooting)
+        if (webState == WEB_STATE.SHOOTING)
         {
-
-            web.SetPosition(1, (Vector2)web.GetPosition(1) - new Vector2(0, webGravity * Time.deltaTime));//slowly sinking
-
-            webEndPoint = web.GetPosition(1);
             
 
             FindWebHit();
 
         }
 
-        if (hasShot)
+        if (webState == WEB_STATE.SHOT)
         {
             web.SetPosition(0, player.position);
             WebDistanceHandler();
@@ -98,62 +90,44 @@ public class WebLogic : MonoBehaviour
     private void Update()
     {
 
-        if (isShooting)
+        if (webState == WEB_STATE.SHOOTING)
         {
             web.SetPosition(0, player.position);
+            web.SetPosition(1, webEnd.transform.position);
+            webEndRB.AddForce(direction * webSpeed * Time.deltaTime);
         }
     }
 
     private void SpawnNextWebSegment()
     {
-        count++;
 
-        if (count <= segments && isShooting)
-        {
-            Vector2 lineWeWant = webTarget - (Vector2)player.position;
-            float x = player.position.x + (lineWeWant.x / segments * count);
-            float y = player.position.y + (lineWeWant.y / segments * count);
-            webEndPoint = new Vector2(x, y);
+        webState = WEB_STATE.SHOOTING;
 
-            float webLength = Vector2.Distance(player.position, webEndPoint);
+        direction = webTarget - (Vector2)player.position;
+        Quaternion rotation= new Quaternion();
+        rotation.SetFromToRotation((Vector2)player.position, webTarget);
 
-            if (webLength > maxWebLength)
-            {
-                Debug.Log("Max web length reached");
-                webEndPoint = Vector2.MoveTowards(webEndPoint, player.position,
-                    Mathf.Abs(webLength - maxWebLength));
-                count = segments;
-            }
-
-            if (FindWebHit())
-            {
-                return;
-            }
-
-            web.SetPosition(1, webEndPoint);
-            Invoke("SpawnNextWebSegment", webSpeed);
-        }
-        else
-        {
-            count = 0;
-            Destroy(webEndCollider);
-            return;
-        }
+        webEnd = Instantiate(webEndPrefab, player.transform.position, rotation, transform);
+        webEndRB = webEnd.GetComponent<Rigidbody2D>();
+        webEndRB.linearVelocity = playerController.rb.linearVelocity;
+        webEndRB.AddForce(direction * webSpeed, ForceMode2D.Impulse);
     }
 
     private bool FindWebHit()
     {
-        RaycastHit2D hit = Physics2D.Raycast(webEndPoint, webEndPoint, 0);
+        RaycastHit2D hit = Physics2D.Raycast(webEnd.transform.position, webEnd.transform.position, 0);
 
         if (hit && !hit.collider.CompareTag("Player"))
         {
-            isShooting = false;
-            hasShot = true;
+            webState = WEB_STATE.SHOT;
 
-            webEndCollider = Instantiate(webEndPrefab, webEndPoint, Quaternion.identity, transform);
-            webSpring = webEndCollider.GetComponent<SpringJoint2D>();
+            webEndRB.constraints = RigidbodyConstraints2D.FreezeAll;
+
+
+            webSpring = webEnd.GetComponent<SpringJoint2D>();
+            webSpring.enabled = true;
             webSpring.connectedBody = playerController.rb;
-            webSpringDistanceOriginal = Vector2.Distance(player.transform.position, webEndPoint)/playerSpeedTowardsWeb;
+            webSpringDistanceOriginal = Vector2.Distance(player.transform.position, webEnd.transform.position)/playerSpeedTowardsWeb;
 
 
             return true;
@@ -163,13 +137,12 @@ public class WebLogic : MonoBehaviour
 
     private void WebDistanceHandler()
     {
-        Debug.Log(webSpring.distance);
-        if (Vector2.Distance(player.transform.position, webEndPoint) <= webSpring.distance )
+        if (Vector2.Distance(player.transform.position, webEnd.transform.position) <= webSpring.distance )
         {
             webSpringDistanceOriginal = webSpring.distance;
             webSpring.distance = 0;
         }
-        else if(Vector2.Distance(player.transform.position, webEndPoint) / playerSpeedTowardsWeb> webSpringDistanceOriginal)
+        else if(Vector2.Distance(player.transform.position, webEnd.transform.position) / playerSpeedTowardsWeb> webSpringDistanceOriginal)
         {
             webSpring.distance = webSpringDistanceOriginal;
         }
