@@ -49,7 +49,7 @@ Rigidbody2D:
   m_Mass: 100
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 0.3
+  m_GravityScale: 0.5
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -80,7 +80,7 @@ SpringJoint2D:
   m_ConnectedAnchor: {x: 0, y: 0}
   m_AutoConfigureDistance: 1
   m_Distance: 96.643105
-  m_DampingRatio: 0.1
+  m_DampingRatio: 0
   m_Frequency: 1
 --- !u!212 &-350289852710801772
 SpriteRenderer:

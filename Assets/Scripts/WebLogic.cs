@@ -17,22 +17,13 @@ public class WebLogic : MonoBehaviour
     float webSpringDistanceOriginal;
     Rigidbody2D webEndRB;
 
-
-    int count = 0;
-    int segments = 20;
-
     public WEB_STATE webState;
     public GameObject webEndPrefab;
     [Space]
     public float webSpeed = 10f;
     public float maxWebLength = 10f;
-    //public float webGravity = 9.8f;
-    //public int minSegments = 3;
-    //public int maxSegments = 20;
     public float playerSpeedTowardsWeb = 30f;
 
-    //private bool isShooting = false;
-    //private bool hasShot = false;
     void Start()
     {
         webState = WEB_STATE.IDLE;
@@ -40,62 +31,70 @@ public class WebLogic : MonoBehaviour
         player = playerController.GetComponentInParent<Transform>();
         webEndPrefab = Resources.Load<GameObject>("Prefabs/WebEnd");
     }
+
+    void LateUpdate()
+    {
+        if (web != null)
+        {
+            web.SetPosition(0, player.position);
+            web.SetPosition(1, webEnd.transform.position);
+        }
+    }
     void FixedUpdate()
     {
-        
-        if (playerController.clickInput&&webState==WEB_STATE.IDLE)
+        switch (webState)
         {
-            webState = WEB_STATE.INPUT;
+            case WEB_STATE.IDLE:
+                if (playerController.clickInput && webState == WEB_STATE.IDLE)
+                {
+                    webState = WEB_STATE.INPUT;
 
-            webTarget = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+                    webTarget = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
 
+                    #region WebSettings
+                    web = gameObject.AddComponent<LineRenderer>();
+                    web.material = new Material(Shader.Find("Sprites/Default"));
+                    web.startColor = Color.white;
+                    web.endColor = Color.white;
+                    web.startWidth = 0.25f;
+                    web.endWidth = 0.25f;
+                    web.positionCount = 2;
+                    #endregion
 
-            #region WebSettings
-            web = gameObject.AddComponent<LineRenderer>();
-            web.material = new Material(Shader.Find("Sprites/Default"));
-            web.startColor = Color.white;
-            web.endColor = Color.white;
-            web.startWidth = 0.25f;
-            web.endWidth = 0.25f;
-            web.positionCount = 2;
-            #endregion
+                    SpawnNextWebSegment();
 
-            SpawnNextWebSegment();
-            
+                }
+                break;
+            case WEB_STATE.SHOOTING:
+
+                FindWebHit();
+                break;
+
+            case WEB_STATE.SHOT:
+
+                WebDistanceHandler();
+                break;
+
+            default:
+                break;
         }
+
+    }
+    private void Update()
+    {
 
         if (!playerController.clickInput)
         {
             webState = WEB_STATE.IDLE;
             Destroy(web);
             Destroy(webEnd);
-            count = 0;
         }
 
         if (webState == WEB_STATE.SHOOTING)
         {
-            
-
-            FindWebHit();
-
-        }
-
-        if (webState == WEB_STATE.SHOT)
-        {
-            web.SetPosition(0, player.position);
-            WebDistanceHandler();
-        }
-    }
-
-    private void Update()
-    {
-
-        if (webState == WEB_STATE.SHOOTING)
-        {
-            web.SetPosition(0, player.position);
-            web.SetPosition(1, webEnd.transform.position);
             webEndRB.AddForce(direction * webSpeed * Time.deltaTime);
         }
+
     }
 
     private void SpawnNextWebSegment()
@@ -137,14 +136,29 @@ public class WebLogic : MonoBehaviour
 
     private void WebDistanceHandler()
     {
-        if (Vector2.Distance(player.transform.position, webEnd.transform.position) <= webSpring.distance )
+        switch (webState)
         {
-            webSpringDistanceOriginal = webSpring.distance;
-            webSpring.distance = 0;
+            case WEB_STATE.SHOOTING:
+
+                break;
+
+            case WEB_STATE.SHOT:
+
+                if (Vector2.Distance(player.transform.position, webEnd.transform.position) <= webSpring.distance)
+                {
+                    webSpringDistanceOriginal = webSpring.distance;
+                    webSpring.distance = 0;
+                }
+                else if (Vector2.Distance(player.transform.position, webEnd.transform.position) / playerSpeedTowardsWeb > webSpringDistanceOriginal)
+                {
+                    webSpring.distance = webSpringDistanceOriginal;
+                }
+                break;
+
+            default:
+                break;
         }
-        else if(Vector2.Distance(player.transform.position, webEnd.transform.position) / playerSpeedTowardsWeb> webSpringDistanceOriginal)
-        {
-            webSpring.distance = webSpringDistanceOriginal;
-        }
+        
     }
+
 }
