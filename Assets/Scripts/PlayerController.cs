@@ -111,7 +111,7 @@ public class PlayerController : MonoBehaviour
 
         if (collision.collider.CompareTag("Ground"))
         {
-            Invoke("CoyoteTime", 0.25f);
+            Invoke("CoyoteTime", 0.1f);
         }
 
     }
@@ -123,6 +123,9 @@ public class PlayerController : MonoBehaviour
     
     private void SlowYVelocity()
     {
-        rb.linearVelocityY = 0;//rb.linearVelocityY / 3f;
+        if (isTouchingGround)
+        {
+            rb.linearVelocityY = 0;
+        }
     }
 }

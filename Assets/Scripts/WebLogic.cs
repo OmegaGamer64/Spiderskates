@@ -4,25 +4,30 @@ using UnityEngine.InputSystem;
 
 public class WebLogic : MonoBehaviour
 {
-    public enum WEB_STATE { IDLE, INPUT, SHOOTING, SHOT };
+    public enum WEB_STATE { IDLE, SHOOTING, SHOT };
    
     Transform player;
-    PlayerController playerController;
+    [HideInInspector]
+    public PlayerController playerController;
     
     LineRenderer web;
     Vector2 webTarget;
     Vector2 direction;
-    GameObject webEnd;
-    SpringJoint2D webSpring;
-    float webSpringDistanceOriginal;
+    [HideInInspector]
+    public GameObject webEnd;
+    [HideInInspector]
+    public SpringJoint2D webSpring;
     Rigidbody2D webEndRB;
 
     public WEB_STATE webState;
+    [HideInInspector]
     public GameObject webEndPrefab;
     [Space]
     public float webSpeed = 10f;
     public float maxWebLength = 10f;
-    public float playerSpeedTowardsWeb = 30f;
+    [Tooltip("In percentage")]
+    public float defaultDistanceFromWeb = 50f;
+    public float maxSpeedWhileShooting = 100;
 
     void Start()
     {
@@ -47,9 +52,11 @@ public class WebLogic : MonoBehaviour
             case WEB_STATE.IDLE:
                 if (playerController.clickInput && webState == WEB_STATE.IDLE)
                 {
-                    webState = WEB_STATE.INPUT;
 
-                    webTarget = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+                    Vector2 webDir = (Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue())
+                        - player.position).normalized;
+
+                    webTarget = (Vector2)player.transform.position+(webDir*maxWebLength);
 
                     #region WebSettings
                     web = gameObject.AddComponent<LineRenderer>();
@@ -67,17 +74,33 @@ public class WebLogic : MonoBehaviour
                 break;
             case WEB_STATE.SHOOTING:
 
-                FindWebHit();
                 break;
 
             case WEB_STATE.SHOT:
 
-                WebDistanceHandler();
+                if (playerController.rb.linearVelocityX > maxSpeedWhileShooting)
+                {
+                    playerController.rb.linearVelocityX = maxSpeedWhileShooting;
+                }
+                else if (-playerController.rb.linearVelocityX < -maxSpeedWhileShooting)
+                {
+                    playerController.rb.linearVelocityX = -maxSpeedWhileShooting;
+                }
+                if (playerController.rb.linearVelocityY > maxSpeedWhileShooting)
+                {
+                    playerController.rb.linearVelocityY = maxSpeedWhileShooting;
+                }
+                else if (-playerController.rb.linearVelocityY < -maxSpeedWhileShooting)
+                {
+                    playerController.rb.linearVelocityY = -maxSpeedWhileShooting;
+                }
+
                 break;
 
             default:
                 break;
         }
+        
 
     }
     private void Update()
@@ -90,10 +113,7 @@ public class WebLogic : MonoBehaviour
             Destroy(webEnd);
         }
 
-        if (webState == WEB_STATE.SHOOTING)
-        {
-            webEndRB.AddForce(direction * webSpeed * Time.deltaTime);
-        }
+        WebDistanceHandler();
 
     }
 
@@ -102,7 +122,7 @@ public class WebLogic : MonoBehaviour
 
         webState = WEB_STATE.SHOOTING;
 
-        direction = webTarget - (Vector2)player.position;
+        direction = (webTarget - (Vector2)player.position).normalized;
         Quaternion rotation= new Quaternion();
         rotation.SetFromToRotation((Vector2)player.position, webTarget);
 
@@ -112,46 +132,17 @@ public class WebLogic : MonoBehaviour
         webEndRB.AddForce(direction * webSpeed, ForceMode2D.Impulse);
     }
 
-    private bool FindWebHit()
-    {
-        RaycastHit2D hit = Physics2D.Raycast(webEnd.transform.position, webEnd.transform.position, 0);
-
-        if (hit && !hit.collider.CompareTag("Player"))
-        {
-            webState = WEB_STATE.SHOT;
-
-            webEndRB.constraints = RigidbodyConstraints2D.FreezeAll;
-
-
-            webSpring = webEnd.GetComponent<SpringJoint2D>();
-            webSpring.enabled = true;
-            webSpring.connectedBody = playerController.rb;
-            webSpringDistanceOriginal = Vector2.Distance(player.transform.position, webEnd.transform.position)/playerSpeedTowardsWeb;
-
-
-            return true;
-        }
-        return false;
-    }
-
     private void WebDistanceHandler()
     {
         switch (webState)
         {
             case WEB_STATE.SHOOTING:
 
-                break;
-
-            case WEB_STATE.SHOT:
-
-                if (Vector2.Distance(player.transform.position, webEnd.transform.position) <= webSpring.distance)
+                if (Vector2.Distance(player.transform.position, webEnd.transform.position) >= maxWebLength)
                 {
-                    webSpringDistanceOriginal = webSpring.distance;
-                    webSpring.distance = 0;
-                }
-                else if (Vector2.Distance(player.transform.position, webEnd.transform.position) / playerSpeedTowardsWeb > webSpringDistanceOriginal)
-                {
-                    webSpring.distance = webSpringDistanceOriginal;
+                    Debug.Log("Max web distance reached");
+
+                    webEndRB.linearVelocity = playerController.rb.linearVelocity+(Physics2D.gravity*webEndRB.gravityScale/2);
                 }
                 break;
 
