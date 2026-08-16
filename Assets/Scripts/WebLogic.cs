@@ -13,6 +13,7 @@ public class WebLogic : MonoBehaviour
     LineRenderer web;
     Vector2 webTarget;
     Vector2 direction;
+    public Vector2 offset;
     [HideInInspector]
     public GameObject webEnd;
     [HideInInspector]
@@ -41,7 +42,7 @@ public class WebLogic : MonoBehaviour
     {
         if (web != null)
         {
-            web.SetPosition(0, player.position);
+            web.SetPosition(0, player.position+(Vector3)offset);
             web.SetPosition(1, webEnd.transform.position);
         }
     }
@@ -122,11 +123,11 @@ public class WebLogic : MonoBehaviour
 
         webState = WEB_STATE.SHOOTING;
 
-        direction = (webTarget - (Vector2)player.position).normalized;
+        direction = (webTarget - (Vector2)player.position - offset).normalized;
         Quaternion rotation= new Quaternion();
-        rotation.SetFromToRotation((Vector2)player.position, webTarget);
+        rotation.SetFromToRotation(player.position + (Vector3)offset, webTarget);
 
-        webEnd = Instantiate(webEndPrefab, player.transform.position, rotation, transform);
+        webEnd = Instantiate(webEndPrefab, player.position+(Vector3)offset, rotation, transform);
         webEndRB = webEnd.GetComponent<Rigidbody2D>();
         webEndRB.linearVelocity = playerController.rb.linearVelocity;
         webEndRB.AddForce(direction * webSpeed, ForceMode2D.Impulse);
@@ -142,7 +143,7 @@ public class WebLogic : MonoBehaviour
                 {
                     Debug.Log("Max web distance reached");
 
-                    webEndRB.linearVelocity = playerController.rb.linearVelocity+(Physics2D.gravity*webEndRB.gravityScale/2);
+                    webEndRB.linearVelocity = playerController.rb.linearVelocity+(Physics2D.gravity*webEndRB.gravityScale/3);
                 }
                 break;
 
