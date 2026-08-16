@@ -13,7 +13,8 @@ public class WebLogic : MonoBehaviour
     LineRenderer web;
     Vector2 webTarget;
     Vector2 direction;
-    public Vector2 offset;
+    public Vector2 playerOffset;
+    public Vector2 webOffset;
     [HideInInspector]
     public GameObject webEnd;
     [HideInInspector]
@@ -23,6 +24,7 @@ public class WebLogic : MonoBehaviour
     public WEB_STATE webState;
     [HideInInspector]
     public GameObject webEndPrefab;
+    Material webTexture;
     [Space]
     public float webSpeed = 10f;
     public float maxWebLength = 10f;
@@ -36,14 +38,15 @@ public class WebLogic : MonoBehaviour
         playerController = FindAnyObjectByType<PlayerController>();
         player = playerController.GetComponentInParent<Transform>();
         webEndPrefab = Resources.Load<GameObject>("Prefabs/WebEnd");
+        webTexture = Resources.Load<Material>("Sprites/WebTexture");
     }
 
     void LateUpdate()
     {
         if (web != null)
         {
-            web.SetPosition(0, player.position+(Vector3)offset);
-            web.SetPosition(1, webEnd.transform.position);
+            web.SetPosition(1, player.position+(Vector3)playerOffset);
+            web.SetPosition(0, webEnd.transform.position + (Vector3)webOffset);
         }
     }
     void FixedUpdate()
@@ -64,9 +67,12 @@ public class WebLogic : MonoBehaviour
                     web.material = new Material(Shader.Find("Sprites/Default"));
                     web.startColor = Color.white;
                     web.endColor = Color.white;
-                    web.startWidth = 0.25f;
-                    web.endWidth = 0.25f;
+                    web.startWidth = 2f;
+                    web.endWidth = 2f;
                     web.positionCount = 2;
+                    web.textureMode = LineTextureMode.Tile;
+                    web.material = webTexture;
+                    web.textureScale = new Vector2(.5f, 1f);
                     #endregion
 
                     SpawnNextWebSegment();
@@ -123,11 +129,11 @@ public class WebLogic : MonoBehaviour
 
         webState = WEB_STATE.SHOOTING;
 
-        direction = (webTarget - (Vector2)player.position - offset).normalized;
+        direction = (webTarget - (Vector2)player.position - playerOffset).normalized;
         Quaternion rotation= new Quaternion();
-        rotation.SetFromToRotation(player.position + (Vector3)offset, webTarget);
+        rotation.SetFromToRotation(player.position + (Vector3)playerOffset, webTarget);
 
-        webEnd = Instantiate(webEndPrefab, player.position+(Vector3)offset, rotation, transform);
+        webEnd = Instantiate(webEndPrefab, player.position+(Vector3)playerOffset, rotation, transform);
         webEndRB = webEnd.GetComponent<Rigidbody2D>();
         webEndRB.linearVelocity = playerController.rb.linearVelocity;
         webEndRB.AddForce(direction * webSpeed, ForceMode2D.Impulse);
