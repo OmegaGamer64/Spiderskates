@@ -133,6 +133,8 @@ public class WebLogic : MonoBehaviour
         Quaternion rotation= new Quaternion();
         rotation.SetFromToRotation(player.position + (Vector3)playerOffset, webTarget);
 
+        Debug.Log(rotation);
+
         webEnd = Instantiate(webEndPrefab, player.position+(Vector3)playerOffset, rotation, transform);
         webEndRB = webEnd.GetComponent<Rigidbody2D>();
         webEndRB.linearVelocity = playerController.rb.linearVelocity;
