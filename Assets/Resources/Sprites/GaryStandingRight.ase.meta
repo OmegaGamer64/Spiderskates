@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 19dde310369fee2478da40d6e1b26132
+guid: 3c90328a263ed0844a2ed45ffad7c091
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -101,7 +101,7 @@ ScriptedImporter:
     addShadowCasters: 0
     generateIndividualEvents: 1
     generateSpriteAtlas: 1
-  platformSettingsDirtyTick: 639224402058601018
+  platformSettingsDirtyTick: 639228531189626170
   singleSpriteImportData:
   - name: 
     originalName: 
@@ -125,7 +125,7 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: GaryWorldBig
+  - name: Frame_0
     originalName: 
     pivot: {x: 0.49206352, y: -0.016129032}
     alignment: 9
@@ -137,7 +137,7 @@ ScriptedImporter:
       y: 76
       width: 63
       height: 62
-    spriteID: 1073ec8cfc5786445a8b022fd423a181
+    spriteID: 47986aab7d34a764ea1b49b501813c1c
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -158,7 +158,7 @@ ScriptedImporter:
       y: 4
       width: 64
       height: 64
-    spriteID: b23c33955bcc5df429dfe4bfa15cab96
+    spriteID: 3c4a7e577f0fe044594b4cce8c33a9d3
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -172,12 +172,12 @@ ScriptedImporter:
   asepriteLayers:
   - layerIndex: 0
     uuid:
-      value0: 1452568351
+      value0: 2332929777
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: GaryWorldBig
+    name: GaryStandingRight
     layerFlags: 0
     layerType: 0
     blendMode: 0
@@ -190,7 +190,7 @@ ScriptedImporter:
         y: 1
         width: 63
         height: 62
-      spriteId: 1073ec8cfc5786445a8b022fd423a181
+      spriteId: 47986aab7d34a764ea1b49b501813c1c
     - name: Frame_1
       frameIndex: 1
       additiveSortOrder: 0
@@ -199,7 +199,7 @@ ScriptedImporter:
         y: 0
         width: 64
         height: 64
-      spriteId: b23c33955bcc5df429dfe4bfa15cab96
+      spriteId: 3c4a7e577f0fe044594b4cce8c33a9d3
     linkedCells: []
     tileCells: []
     tileSetIndex: 0

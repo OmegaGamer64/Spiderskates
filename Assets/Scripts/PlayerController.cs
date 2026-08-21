@@ -1,10 +1,14 @@
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-
+    enum IsTouchingWall {FALSE, LEFT, RIGHT};
     public Rigidbody2D rb;
+
+    Animator animator;
 
     private bool moveLeftInput;
     private bool moveRightInput;
@@ -13,7 +17,7 @@ public class PlayerController : MonoBehaviour
 
     private WebLogic webLogic;
     private bool isTouchingGround = false;
-    private bool isTouchingWall = false;
+    private IsTouchingWall isTouchingWall = IsTouchingWall.FALSE;
     private bool jumping = false;
 
     public float moveVelocity = 35;
@@ -24,6 +28,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         webLogic = FindAnyObjectByType<WebLogic>();
+        animator = GetComponentInParent<Animator>();
     }
 
     void Update()
@@ -75,6 +80,7 @@ public class PlayerController : MonoBehaviour
         {
             jumping = false;
         }
+        SpriteHandler();
 
     }
 
@@ -101,10 +107,26 @@ public class PlayerController : MonoBehaviour
             jumping = true;
             isTouchingGround = false;
         }
-        else if (jumpInput && isTouchingWall)
+        else if (jumpInput && isTouchingWall!=0)
         {
+            if (rb.linearVelocityY < 0) 
+            {
+                rb.linearVelocityY = 0;
+            }
+
             rb.AddForceY(jumpVelocity * Time.deltaTime, ForceMode2D.Impulse);
-            isTouchingWall = false;
+
+
+            if (isTouchingWall == IsTouchingWall.LEFT)
+            {
+                rb.AddForceX(jumpVelocity * Time.deltaTime/2, ForceMode2D.Impulse);
+            }
+            else if (isTouchingWall == IsTouchingWall.RIGHT)
+            {
+                rb.AddForceX(-jumpVelocity * Time.deltaTime/2, ForceMode2D.Impulse);
+            }
+
+            isTouchingWall = IsTouchingWall.FALSE;
         }
         if (rb.linearVelocityY < 0 && !isTouchingGround)
         {
@@ -114,20 +136,6 @@ public class PlayerController : MonoBehaviour
     }
 
     #region CollisionLogic
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-
-        if (collision.collider.CompareTag("Ground"))
-        {
-            isTouchingGround = true;
-            jumping = false;
-        }
-        if (collision.collider.CompareTag("Wall"))
-        {
-            isTouchingWall = true;
-        }
-        
-    }
     private void OnCollisionStay2D(Collision2D collision)
     {
 
@@ -136,9 +144,13 @@ public class PlayerController : MonoBehaviour
             isTouchingGround = true;
             jumping = false;
         }
-        if (collision.collider.CompareTag("Wall"))
+        if (collision.collider.CompareTag("WallLeft"))
         {
-            isTouchingWall = true;
+            isTouchingWall = IsTouchingWall.LEFT;
+        }
+        else if (collision.collider.CompareTag("WallRight"))
+        {
+            isTouchingWall = IsTouchingWall.RIGHT;
         }
 
     }
@@ -152,7 +164,7 @@ public class PlayerController : MonoBehaviour
         }
         if (collision.collider.CompareTag("Wall"))
         {
-            isTouchingWall = false;
+            isTouchingWall = IsTouchingWall.FALSE;
         }
 
     }
@@ -177,4 +189,21 @@ public class PlayerController : MonoBehaviour
             rb.linearVelocityY = 0;
         }
     }
+
+    private void SpriteHandler()
+    {
+
+        if (moveRightInput)
+        {
+            animator.SetBool("standingRight", true);
+            animator.SetBool("standingLeft", false);
+        }
+        else if (moveLeftInput)
+        {
+            animator.SetBool("standingLeft", true);
+            animator.SetBool("standingRight", false);
+        }
+
+    }
+
 }

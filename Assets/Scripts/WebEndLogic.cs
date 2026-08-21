@@ -6,7 +6,9 @@ public class WebEndLogic : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision && collision.CompareTag("Ground") 
-                      || collision.CompareTag("Wall") 
+                      || collision.CompareTag("Wall")
+                      || collision.CompareTag("WallLeft")
+                      || collision.CompareTag("WallRight")
                       || collision.CompareTag("Untagged"))
         {
             WebLogic parent = GetComponentInParent<WebLogic>();
