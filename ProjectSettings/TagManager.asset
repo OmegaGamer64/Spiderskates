@@ -8,6 +8,7 @@ TagManager:
   - Wall
   - WallLeft
   - WallRight
+  - Invisible Wall
   layers:
   - Default
   - TransparentFX
