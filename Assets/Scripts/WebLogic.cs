@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 public class WebLogic : MonoBehaviour
 {
-    public enum WEB_STATE { IDLE, SHOOTING, SHOT };
+    public enum WEB_STATE { IDLE, SHOOTING, SHOT, GRAPPLING };
    
     Transform player;
     [HideInInspector]
@@ -21,7 +21,8 @@ public class WebLogic : MonoBehaviour
     [HideInInspector]
     public SpringJoint2D webSpring;
     Rigidbody2D webEndRB;
-
+    [HideInInspector]
+    public GameObject grappledEnemy;
     public WEB_STATE webState;
     [HideInInspector]
     public GameObject webEndPrefab;
@@ -29,6 +30,7 @@ public class WebLogic : MonoBehaviour
     [Space]
     public float webSpeed = 10f;
     public float maxWebLength = 10f;
+    public float minWebLength = 1f;
     [Tooltip("In percentage")]
     public float defaultDistanceFromWeb = 50f;
     public float maxSpeedWhileShooting = 100;
@@ -105,6 +107,13 @@ public class WebLogic : MonoBehaviour
 
                 break;
 
+            case WEB_STATE.GRAPPLING:
+
+                webEnd.GetComponent<SpriteRenderer>().enabled = false;
+                GrappleHandler();
+
+                break;
+
             default:
                 break;
         }
@@ -116,9 +125,15 @@ public class WebLogic : MonoBehaviour
 
         if (!playerController.clickInput)
         {
+            if(webState == WEB_STATE.GRAPPLING)
+            {
+                grappledEnemy = null;
+            }
             webState = WEB_STATE.IDLE;
             Destroy(web);
             Destroy(webEnd);
+            
+            
         }
 
         WebDistanceHandler();
@@ -131,12 +146,8 @@ public class WebLogic : MonoBehaviour
         webState = WEB_STATE.SHOOTING;
 
         direction = (webTarget - (Vector2)player.position - playerOffset).normalized;
-        Quaternion rotation= new Quaternion();
-        rotation.SetFromToRotation(player.position + (Vector3)playerOffset, webTarget);
 
-        Debug.Log(rotation);
-
-        webEnd = Instantiate(webEndPrefab, player.position+(Vector3)playerOffset, rotation, transform);
+        webEnd = Instantiate(webEndPrefab, player.position+(Vector3)playerOffset, Quaternion.identity, transform);
         webEndRB = webEnd.GetComponent<Rigidbody2D>();
         webEndRB.linearVelocity = playerController.rb.linearVelocity;
         webEndRB.AddForce(direction * webSpeed, ForceMode2D.Impulse);
@@ -160,6 +171,37 @@ public class WebLogic : MonoBehaviour
                 break;
         }
         
+    }
+
+    private void GrappleHandler()
+    {
+
+        Vector2 mousePos = new Vector2(Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue()).x,
+                                       Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue()).y);
+
+        Vector2 webDir = (Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue())
+                        - player.position).normalized;
+
+        if (Vector2.Distance(player.position, mousePos) >= maxWebLength)
+        {
+
+            
+            mousePos = (Vector2)player.transform.position + (webDir * maxWebLength);
+
+        }
+        if (Vector2.Distance(Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue()), mousePos) <= minWebLength)
+        {
+            Debug.Log("Min Web Length Reached");
+            webDir = (player.position - Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue())).normalized;
+            mousePos = (Vector2)Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue()) + (webDir * minWebLength);
+
+        }
+        grappledEnemy.GetComponent<Rigidbody2D>().MovePosition(mousePos);
+
+        Vector2 enemyPos = new Vector2(grappledEnemy.transform.position.x,
+                                       grappledEnemy.transform.position.y);
+        webEndRB.MovePosition(enemyPos);
+
     }
 
 }

@@ -9,6 +9,7 @@ TagManager:
   - WallLeft
   - WallRight
   - Invisible Wall
+  - Enemy
   layers:
   - Default
   - TransparentFX

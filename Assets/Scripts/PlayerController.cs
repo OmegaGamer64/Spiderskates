@@ -107,7 +107,7 @@ public class PlayerController : MonoBehaviour
             jumping = true;
             isTouchingGround = false;
         }
-        else if (jumpInput && isTouchingWall!=0)
+        else if (jumpInput && isTouchingWall!=IsTouchingWall.FALSE)
         {
             if (rb.linearVelocityY < 0) 
             {

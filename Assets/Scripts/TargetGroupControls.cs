@@ -16,5 +16,10 @@ public class TargetGroupControls : MonoBehaviour
         {
             GetComponent<CinemachineTargetGroup>().Targets[1].Object = webLogic.webEnd.transform;
         }
+
+        if (webLogic.webState == WebLogic.WEB_STATE.GRAPPLING)
+        {
+            GetComponent<CinemachineTargetGroup>().Targets[1].Object = null;
+        }
     }
 }
